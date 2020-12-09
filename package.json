@@ -1,0 +1,19 @@
+{
+  "name": "scantradfrance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Loïc Degrange",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.1",
+    "discord.js-pagination": "^1.0.3",
+    "mongoose": "^5.11.6",
+    "mongoose-findorcreate": "^3.0.0",
+    "node-fetch": "^2.6.1",
+    "ws": "^7.4.1"
+  }
+}
