@@ -24,7 +24,8 @@ bot.on('message', msg => {
 	if (msg.content.toLowerCase().startsWith(secrets.prefix))
 		commandProcess(msg);
 	});
-ws.on('message', data => {
+ws.on('message', releases => {
+	releases = JSON.parse(releases))
 	for (let i = 0; i < releases.chapters.length; i++) {
 		User
 		.find({ $or: [ { follows: releases.mangas[i].id }, { all: true } ] })
@@ -32,7 +33,7 @@ ws.on('message', data => {
 			for (let user of user_docs) {
 				bot.users.cache.get(user.id)
 				.send("Le chapitre **"+releases.chapters[i].number+"** de **"+releases.mangas[i].name+"** est sorti !")
-				.catch(err => console.error(err))
+				.catch(err => {})
 			}
 		})
 		.catch(err => console.error(err));
@@ -48,7 +49,6 @@ function commandProcess(msg) {
     let arguments = splitCommand.slice(1);
 
 	switch (primaryCommand.toLowerCase()) {
-		// case 'debug': if (msg.member.hasPermission("ADMINISTRATOR")) mangaPing.emit('release', { chapters: [ { number: 123 }, { number: 69 } ], mangas: [ { name: "My Hero Academia", id: "my-hero-academia" }, { name: "One Punch Man", id: "one-punch-man" } ] }); break; // DEBUG
 		case 'help':
 			showHelp(msg);
 			break;
