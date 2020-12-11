@@ -2,7 +2,7 @@
 Annonce la sortie de nouveaux chapitres de `https://scantrad.net`
 
 ## Préfixe
-- `m!`
+- `sf!`
 
 ## Commandes
 - `mangas` : Voir l'id des mangas
