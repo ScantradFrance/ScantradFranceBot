@@ -75,7 +75,7 @@ function commandProcess(msg) {
 				}
 				pages[p].addField("Liste des mangas :", embed_str);
 			} else pages.push(new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28").addField("‎", "Aucun manga"));
-			paginationEmbed(msg, pages);
+			paginationEmbed(msg, pages, ['⬅️', '➡️']);
 		})
 		.catch(err => console.error(err));
 			break;
