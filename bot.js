@@ -29,10 +29,12 @@ bot.on('message', msg => {
 function startws(websocket_uri) {
 	var ws = new WebSocket(websocket_uri);
 
-	ws.onmessage = releases => {
+	ws.onmessage = res => {
+		let releases = res.data;
 		try { releases = JSON.parse(releases); }
 		catch (e) { console.error(e) }
-		releases.reverse();
+		releases.chapters.reverse();
+		releases.mangas.reverse();
 		for (let i = 0; i < releases.chapters.length; i++) {
 			User
 			.find({ $or: [ { follows: releases.mangas[i].id }, { all: true } ] })
