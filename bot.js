@@ -25,7 +25,9 @@ bot.on('message', msg => {
 		commandProcess(msg);
 	});
 ws.on('message', releases => {
-	releases = JSON.parse(releases);
+	try { releases = JSON.parse(releases); }
+	catch (e) { console.error(e) }
+	releases.reverse();
 	for (let i = 0; i < releases.chapters.length; i++) {
 		User
 		.find({ $or: [ { follows: releases.mangas[i].id }, { all: true } ] })
