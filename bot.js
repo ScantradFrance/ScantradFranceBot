@@ -6,7 +6,9 @@ const User = require('./models/User');
 const mongoose = require('mongoose');
 const WebSocket = require('ws');
 
-const ws = new WebSocket(secrets.websocket_uri);
+let reconnection_count = 0;
+startws(secrets.websocket_uri);
+
 const bot = new Discord.Client();
 mongoose
 	.connect(secrets.mongodb_uri, {
@@ -24,23 +26,35 @@ bot.on('message', msg => {
 	if (msg.content.toLowerCase().startsWith(secrets.prefix))
 		commandProcess(msg);
 	});
-ws.on('message', releases => {
-	try { releases = JSON.parse(releases); }
-	catch (e) { console.error(e) }
-	releases.reverse();
-	for (let i = 0; i < releases.chapters.length; i++) {
-		User
-		.find({ $or: [ { follows: releases.mangas[i].id }, { all: true } ] })
-		.then(user_docs => {
-			for (let user of user_docs) {
-				bot.users.cache.get(user.id)
-				.send("Le chapitre **"+releases.chapters[i].number+"** de **"+releases.mangas[i].name+"** est sorti !")
-				.catch(err => {})
-			}
-		})
-		.catch(err => console.error(err));
+function startws(websocket_uri) {
+	var ws = new WebSocket(websocket_uri);
+
+	ws.onmessage = releases => {
+		try { releases = JSON.parse(releases); }
+		catch (e) { console.error(e) }
+		releases.reverse();
+		for (let i = 0; i < releases.chapters.length; i++) {
+			User
+			.find({ $or: [ { follows: releases.mangas[i].id }, { all: true } ] })
+			.then(user_docs => {
+				for (let user of user_docs) {
+					bot.users.cache.get(user.id)
+					.send("Le chapitre **"+releases.chapters[i].number+"** de **"+releases.mangas[i].name+"** est sorti !")
+					.catch(err => {})
+				}
+			}).catch(err => console.error(err));
+		}
 	}
-});
+
+	ws.onerror = () => {};
+
+	ws.onclose = () => {
+		ws = null;
+		reconnection_count++;
+		if (reconnection_count < 5) setTimeout(() => { startws(websocket_uri) }, 5000);
+		else throw new Error("Attempted to reconnect to server 5 times but failed!");
+	}
+}
 
 function commandProcess(msg) {
 	let rawCommand = msg.content;
