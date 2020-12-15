@@ -29,6 +29,8 @@ bot.on('message', msg => {
 function startws(websocket_uri) {
 	var ws = new WebSocket(websocket_uri);
 
+	ws.onopen = () => { reconnection_count = 0 };
+
 	ws.onmessage = res => {
 		let releases = res.data;
 		try { releases = JSON.parse(releases); }
@@ -46,7 +48,7 @@ function startws(websocket_uri) {
 				}
 			}).catch(err => console.error(err));
 		}
-	}
+	};
 
 	ws.onerror = () => {};
 
@@ -55,7 +57,7 @@ function startws(websocket_uri) {
 		reconnection_count++;
 		if (reconnection_count < 5) setTimeout(() => { startws(websocket_uri) }, 5000);
 		else throw new Error("Attempted to reconnect to server 5 times but failed!");
-	}
+	};
 }
 
 function commandProcess(msg) {
