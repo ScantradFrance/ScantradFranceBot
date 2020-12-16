@@ -26,7 +26,7 @@ bot.on('message', msg => {
 
 const wssf = new WsSf();
 wssf.onrelease(releases => {
-	for (let release in releases) {
+	for (let release of releases) {
 		User
 		.find({ $or: [ { follows: release.id }, { all: true } ] })
 		.then(user_docs => {
