@@ -4,10 +4,7 @@ const paginationEmbed = require('discord.js-pagination');
 const fetch = require('node-fetch');
 const User = require('./models/User');
 const mongoose = require('mongoose');
-const WebSocket = require('ws');
-
-let reconnection_count = 0;
-startws(secrets.websocket_uri);
+const WsSf = require('ws-sf');
 
 const bot = new Discord.Client();
 mongoose
@@ -25,41 +22,22 @@ bot.on('ready', () => { console.log(bot.user.tag + " is online"); })
 bot.on('message', msg => {
 	if (msg.content.toLowerCase().startsWith(secrets.prefix))
 		commandProcess(msg);
-	});
-function startws(websocket_uri) {
-	var ws = new WebSocket(websocket_uri);
+});
 
-	ws.onopen = () => { reconnection_count = 0 };
-
-	ws.onmessage = res => {
-		let releases = res.data;
-		try { releases = JSON.parse(releases); }
-		catch (e) { console.error(e) }
-		releases.chapters.reverse();
-		releases.mangas.reverse();
-		for (let i = 0; i < releases.chapters.length; i++) {
-			User
-			.find({ $or: [ { follows: releases.mangas[i].id }, { all: true } ] })
-			.then(user_docs => {
-				for (let user of user_docs) {
-					bot.users.cache.get(user.id)
-					.send("Le chapitre **"+releases.chapters[i].number+"** de **"+releases.mangas[i].name+"** est sorti !")
-					.catch(err => {})
-				}
-			}).catch(err => console.error(err));
-		}
-	};
-
-	ws.onerror = () => {};
-
-	ws.onclose = () => {
-		ws = null;
-		reconnection_count++;
-		if (reconnection_count < 5) setTimeout(() => { startws(websocket_uri) }, 5000);
-		else throw new Error("Attempted to reconnect to server 5 times but failed!");
-	};
-}
-
+const wssf = new WsSf();
+wssf.onrelease(releases => {
+	for (let release in releases) {
+		User
+		.find({ $or: [ { follows: release.id }, { all: true } ] })
+		.then(user_docs => {
+			for (let user of user_docs) {
+				bot.users.cache.get(user.id)
+				.send("Le chapitre **"+release.number+"** de **"+release.name+"** est sorti !")
+				.catch(err => {})
+			}
+		}).catch(err => console.error(err));
+	}
+});
 function commandProcess(msg) {
 	let rawCommand = msg.content;
     let fullCommand = rawCommand.substr(secrets.prefix.length);
