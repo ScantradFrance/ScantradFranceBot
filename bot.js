@@ -79,6 +79,7 @@ function commandProcess(msg) {
 			let pages = [];
 			let embed_str = "";
 			if (mangas.length) {
+				mangas.reverse();
 				let p = -1;
 				for (let manga of mangas) {
 					if (m % 15 === 0) {
