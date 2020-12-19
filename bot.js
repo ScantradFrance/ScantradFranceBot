@@ -26,7 +26,7 @@ bot.on('message', msg => {
 });
 
 const wssf = new WsSf();
-wssf.onrelease(async (res) => {
+wssf.onrelease(async res => {
 	let releases = res.data;
 	let double = false;
 	let chapters = { numbers: "", titles: "" };
@@ -71,9 +71,10 @@ function commandProcess(msg) {
 			break;
 
 		case 'mangas': // show list of mangas
-		fetch(secrets.scantradfrance_api+"mangas")
+		fetch(secrets.sf_api.url+"mangas", {headers: new fetch.Headers({'Authorization': 'Bearer '+secrets.sf_api.token})})
 		.then(response => response.json())
 		.then(mangas => {
+			if (mangas.error) console.error(mangas.error);
 			let m = 0;
 			let pages = [];
 			let embed_str = "";
@@ -171,7 +172,7 @@ function showHelp(msg) {
 
 function updateFollow(msg, arguments, toFollow) {
 	if (!arguments.length) { msgReply(msg, toFollow ? "choisis un ou des mangas à suivre." : "choisis un ou des mangas à ne plus suivre.").catch(console.error); return; }
-	fetch(secrets.scantradfrance_api+"mangas")
+	fetch(secrets.sf_api.url+"mangas", {headers: new fetch.Headers({'Authorization': 'Bearer '+secrets.sf_api.token})})
 	.then(response => response.json())
 	.then(async mangas => {
 		let r = 0;
