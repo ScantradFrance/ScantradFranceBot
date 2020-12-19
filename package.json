@@ -11,11 +11,11 @@
   "dependencies": {
     "discord.js": "^12.5.1",
     "discord.js-pagination": "^1.0.3",
-    "mongoose": "^5.11.6",
+    "mongoose": "^5.11.8",
     "mongoose-findorcreate": "^3.0.0",
     "node-fetch": "^2.6.1",
     "ws": "^7.4.1",
-    "ws-sf": "^1.0.2"
+    "ws-sf": "^1.0.3"
   },
   "repository": {
     "type": "git",
