@@ -26,13 +26,22 @@ bot.on('message', msg => {
 
 const wssf = new WsSf();
 wssf.onrelease(releases => {
-	for (let release of releases) {
+	for (let release of JSON.parse(releases)) {
 		User
 		.find({ $or: [ { follows: release.id }, { all: true } ] })
 		.then(user_docs => {
+			const embed = new Discord.MessageEmbed()
+				.setThumbnail(release.thumbnail)
+				.setURL(`https://scantrad.net/mangas/${release.id}/${release.number}`)
+				.setTitle("Lire le chapitre")
+				.addField("Le chapitre `"+release.number+"` de `"+release.name+"` est sorti !", release.title)
+				.setImage(release.image)
+				.setColor("#F05A28")
+				.setFooter("Merci de supporter la team en lisant sur le site !")
+				.setTimestamp();
 			for (let user of user_docs) {
 				bot.users.cache.get(user.id)
-				.send("Le chapitre **"+release.number+"** de **"+release.name+"** est sorti !")
+				.send("", embed)
 				.catch(err => {})
 			}
 		}).catch(err => console.error(err));
