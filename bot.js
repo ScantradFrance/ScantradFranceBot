@@ -36,7 +36,7 @@ wssf.onrelease(async res => {
 		chapters.titles += "• " + releases[r].title;
 		embed.setColor(embed_color).setFooter("Merci de supporter la team en lisant sur le site !").setTimestamp();
 		if (r + 1 < Object(releases).length && releases[r].id === releases[r + 1].id) {
-			if (!double) embed.setThumbnail(releases[r].thumbnail).setImage(releases[r].image);
+			if (!double) embed.setURL(`https://scantrad.net/mangas/${releases[r].id}/${releases[r].number}`).setThumbnail(releases[r].thumbnail).setImage(releases[r].image);
 			chapters.numbers += ", ";
 			chapters.titles += "\n";
 			double = true;
