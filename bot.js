@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const WsSf = require('ws-sf');
 
 const bot = new Discord.Client();
+const embed_color = "#F05A28";
 mongoose
 	.connect(secrets.mongodb_uri, {
 		useNewUrlParser: true,
@@ -25,26 +26,35 @@ bot.on('message', msg => {
 });
 
 const wssf = new WsSf();
-wssf.onrelease(releases => {
-	for (let release of JSON.parse(releases)) {
-		User
-		.find({ $or: [ { follows: release.id }, { all: true } ] })
-		.then(user_docs => {
-			const embed = new Discord.MessageEmbed()
-				.setThumbnail(release.thumbnail)
-				.setURL(`https://scantrad.net/mangas/${release.id}/${release.number}`)
-				.setTitle("Lire le chapitre")
-				.addField("Le chapitre `"+release.number+"` de `"+release.name+"` est sorti !", release.title)
-				.setImage(release.image)
-				.setColor("#f05a28")
-				.setFooter("Merci de supporter la team en lisant sur le site !")
-				.setTimestamp();
-			for (let user of user_docs) {
-				bot.users.cache.get(user.id)
-				.send("", embed)
-				.catch(() => {})
+wssf.onrelease(async (res) => {
+	let releases = res.data;
+	let double = false;
+	let chapters = { numbers: "", titles: "" };
+	let embed = new Discord.MessageEmbed();
+	for (let r = 0; r < Object(releases).length; r++) {
+		chapters.numbers += releases[r].number;
+		chapters.titles += "• " + releases[r].title;
+		embed.setColor(embed_color).setFooter("Merci de supporter la team en lisant sur le site !").setTimestamp();
+		if (r + 1 < Object(releases).length && releases[r].id === releases[r + 1].id) {
+			if (!double) embed.setThumbnail(releases[r].thumbnail).setImage(releases[r].image);
+			chapters.numbers += ", ";
+			chapters.titles += "\n";
+			double = true;
+		} else {
+			if (!double) embed.setThumbnail(releases[r].thumbnail).setImage(releases[r].image).setURL(`https://scantrad.net/mangas/${releases[r].id}/${releases[r].number}`).setTitle("Lire le chapitre").addField("Le chapitre `" + releases[r].number + "` de `" + releases[r].name + "` est sorti !", releases[r].title);
+			else embed.setTitle("Lire les chapitres").addField("Les chapitres `" + chapters.numbers + "` de `" + releases[r].name + "` sont sortis !", chapters.titles);
+			let user_docs = await User.find({$or: [{follows: releases[r].id}, {all: true}]}).catch(console.error);
+			if (user_docs) {
+				for (let user of user_docs) {
+					bot.users.cache.get(user.id)
+					.send("", embed)
+					.catch(() => {})
+				}
 			}
-		}).catch(console.error);
+			chapters = {numbers: "", titles: ""};
+			embed = new Discord.MessageEmbed();
+			double = false;
+		}
 	}
 });
 function commandProcess(msg) {
@@ -75,13 +85,13 @@ function commandProcess(msg) {
 							pages[p].addField("Liste des mangas :", embed_str);
 						p++;
 						embed_str = "";
-						pages[p] = new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28");
+						pages[p] = new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor(embed_color);
 					}
 					m++;
 					embed_str += "• "+manga.id+"\n";
 				}
 				pages[p].addField("Liste des mangas :", embed_str);
-			} else pages.push(new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28").addField("‎", "Aucun manga"));
+			} else pages.push(new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor(embed_color).addField("‎", "Aucun manga"));
 			paginationEmbed(msg, pages, ['⬅️', '➡️']).catch(console.error);
 		})
 		.catch(console.error);
@@ -101,14 +111,14 @@ function commandProcess(msg) {
 							pages[p].addField("Liste des mangas suivis :", embed_str);
 						p++;
 						embed_str = "";
-						pages[p] = new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28");
+						pages[p] = new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor(embed_color);
 					}
 					m++;
 					embed_str += "• "+manga_id+"\n";
 				}
 				pages[p].addField("Liste des mangas suivis :", embed_str);
-			} else pages = [ new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28").addField("Liste des mangas suivis :", "Aucun manga") ];
-			if (user_doc && user_doc.all) pages = [ new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28").addField("Liste des mangas suivis :", "Tous les mangas") ];
+			} else pages = [ new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor(embed_color).addField("Liste des mangas suivis :", "Aucun manga") ];
+			if (user_doc && user_doc.all) pages = [ new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor(embed_color).addField("Liste des mangas suivis :", "Tous les mangas") ];
 			paginationEmbed(msg, pages).catch(console.error);
 		})
 		.catch(console.error);
@@ -151,7 +161,7 @@ function showHelp(msg) {
 		.setTitle("Informations")
 		.setDescription("Annonce la sortie de nouveaux chapitres de `https://scantrad.net`")
 		.setTimestamp()
-		.setColor("#F05A28")
+		.setColor(embed_color)
 		.addFields(
 			{ name: "Préfixe : `"+secrets.prefix+"`", value: "\n‎" },
 			{ name: "Commandes :", value: "• `mangas` : Voir l'id des mangas\n• `followed` : Voir la liste des mangas suivis\n• `all` : Suivre tous les mangas et les nouveautés\n• `follow MANGA_ID...` : Suivre des mangas\n• `unfollow MANGA_ID...` : Ne plus suivre des mangas\n‎" }
