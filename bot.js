@@ -14,7 +14,7 @@ mongoose
 		useFindAndModify: false,
 		useCreateIndex: true
 	})
-	.then(console.log("Database connected"))
+	.then(() => console.log("Database connected"))
     .catch(err => console.log(err));
 mongoose.Promise = Promise;
 
@@ -36,15 +36,15 @@ wssf.onrelease(releases => {
 				.setTitle("Lire le chapitre")
 				.addField("Le chapitre `"+release.number+"` de `"+release.name+"` est sorti !", release.title)
 				.setImage(release.image)
-				.setColor("#F05A28")
+				.setColor("#f05a28")
 				.setFooter("Merci de supporter la team en lisant sur le site !")
 				.setTimestamp();
 			for (let user of user_docs) {
 				bot.users.cache.get(user.id)
 				.send("", embed)
-				.catch(err => {})
+				.catch(() => {})
 			}
-		}).catch(err => console.error(err));
+		}).catch(console.error);
 	}
 });
 function commandProcess(msg) {
@@ -70,7 +70,7 @@ function commandProcess(msg) {
 			if (mangas.length) {
 				let p = -1;
 				for (let manga of mangas) {
-					if (m % 15 == 0) {
+					if (m % 15 === 0) {
 						if (p > -1)
 							pages[p].addField("Liste des mangas :", embed_str);
 						p++;
@@ -82,9 +82,9 @@ function commandProcess(msg) {
 				}
 				pages[p].addField("Liste des mangas :", embed_str);
 			} else pages.push(new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28").addField("‎", "Aucun manga"));
-			paginationEmbed(msg, pages, ['⬅️', '➡️']);
+			paginationEmbed(msg, pages, ['⬅️', '➡️']).catch(console.error);
 		})
-		.catch(err => console.error(err));
+		.catch(console.error);
 			break;
 
 		case 'followed': // show followed mangas
@@ -96,7 +96,7 @@ function commandProcess(msg) {
 			if (user_doc && user_doc.follows.length) {
 				let p = -1;
 				for (let manga_id of user_doc.follows) {
-					if (m % 15 == 0) {
+					if (m % 15 === 0) {
 						if (p > -1)
 							pages[p].addField("Liste des mangas suivis :", embed_str);
 						p++;
@@ -109,26 +109,26 @@ function commandProcess(msg) {
 				pages[p].addField("Liste des mangas suivis :", embed_str);
 			} else pages = [ new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28").addField("Liste des mangas suivis :", "Aucun manga") ];
 			if (user_doc && user_doc.all) pages = [ new Discord.MessageEmbed().setURL("https://scantrad.net").setTitle("Mangas").setTimestamp().setColor("#F05A28").addField("Liste des mangas suivis :", "Tous les mangas") ];
-			paginationEmbed(msg, pages);
+			paginationEmbed(msg, pages).catch(console.error);
 		})
-		.catch(err => console.error(err));
+		.catch(console.error);
 			break;
 
 		case 'all': // toggle follow all
 			User
 			.findOrCreate({ id: msg.author.id })
 			.then(res => {
-				user_doc = res.doc;
-				user_doc.all = user_doc.all ? false : true;
+				let user_doc = res.doc;
+				user_doc.all = !user_doc.all;
 				user_doc
 				.save()
 				.then(() => {
-					if (!user_doc.all && !user_doc.follows.length) User.deleteOne({ id: msg.author.id }).catch(err => console.error(err));
-					msgReply(msg, user_doc.all ? "tu suis maintenant tous les mangas." : "tu ne suis désormais plus tous les mangas.");
+					if (!user_doc.all && !user_doc.follows.length) User.deleteOne({ id: msg.author.id }).catch(console.error);
+					msgReply(msg, user_doc.all ? "tu suis maintenant tous les mangas." : "tu ne suis désormais plus tous les mangas.").catch(console.error);
 				})
-				.catch(err => console.error(err));
+				.catch(console.error);
 			})
-			.catch(err => console.error(err));
+			.catch(console.error);
 			break;
 
 		case 'follow': // follow mangas
@@ -140,7 +140,7 @@ function commandProcess(msg) {
 			break;
 
 		default:
-			msgReply(msg, "cette commande n'existe pas.").catch(err => console.error(err));
+			msgReply(msg, "cette commande n'existe pas.").catch(console.error);
 	}
 }
 
@@ -156,11 +156,11 @@ function showHelp(msg) {
 			{ name: "Préfixe : `"+secrets.prefix+"`", value: "\n‎" },
 			{ name: "Commandes :", value: "• `mangas` : Voir l'id des mangas\n• `followed` : Voir la liste des mangas suivis\n• `all` : Suivre tous les mangas et les nouveautés\n• `follow MANGA_ID...` : Suivre des mangas\n• `unfollow MANGA_ID...` : Ne plus suivre des mangas\n‎" }
 		);
-	msgSend(msg, "", embed).catch(err => console.error(err));
+	msgSend(msg, "", embed).catch(console.error);
 }
 
 function updateFollow(msg, arguments, toFollow) {
-	if (!arguments.length) { msgReply(msg, toFollow ? "choisis un ou des mangas à suivre." : "choisis un ou des mangas à ne plus suivre.").catch(err => console.error(err)); return; };
+	if (!arguments.length) { msgReply(msg, toFollow ? "choisis un ou des mangas à suivre." : "choisis un ou des mangas à ne plus suivre.").catch(console.error); return; }
 	fetch(secrets.scantradfrance_api+"mangas")
 	.then(response => response.json())
 	.then(async mangas => {
@@ -180,17 +180,17 @@ function updateFollow(msg, arguments, toFollow) {
 		let str;
 		if (toFollow) {
 			if (r > 1)			str = "**"+r+"** mangas ont été ajoutés à tes mangas suivis.";
-			else if (r == 1)	str = "**"+r+"** manga a été ajouté à tes mangas suivis.";
+			else if (r === 1)	str = "**"+r+"** manga a été ajouté à tes mangas suivis.";
 			else				str = "aucun manga n'a été ajouté à tes mangas suivis.";
 		} else {
 			if (r > 1)			str = "**"+r+"** mangas ont été supprimés de tes mangas suivis.";
-			else if (r == 1)	str = "**"+r+"** manga a été supprimé de tes mangas suivis.";
+			else if (r === 1)	str = "**"+r+"** manga a été supprimé de tes mangas suivis.";
 			else				str = "aucun manga n'a été supprimé de tes mangas suivis.";
 		}
-		msgReply(msg, str);
-		if (!toFollow) User.findOneAndDelete({ id: msg.author.id, follows: [] }).catch(err => console.error(err));
+		msgReply(msg, str).catch(console.error);
+		if (!toFollow) User.findOneAndDelete({ id: msg.author.id, follows: [] }).catch(console.error);
 	})
-	.catch(err => console.error(err));
+	.catch(console.error);
 }
 
 async function msgSend(msg, content, attachment) {
@@ -203,4 +203,4 @@ function capitalize(str) {
 	return str.replace(/^\w/, (c) => c.toUpperCase());
 }
 
-bot.login(secrets.token);
+bot.login(secrets.token).catch(console.error);
