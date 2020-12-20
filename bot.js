@@ -26,8 +26,8 @@ bot.on('message', msg => {
 });
 
 const wssf = new WsSf();
-wssf.onrelease(async res => {
-	let releases = res.data;
+wssf.onrelease(async data => {
+	let releases = JSON.parse(data);
 	let double = false;
 	let chapters = { numbers: "", titles: "" };
 	let embed = new Discord.MessageEmbed();
