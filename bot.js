@@ -26,7 +26,11 @@ bot.on('message', msg => {
 });
 
 const wssf = new WsSf();
-wssf.onrelease(async data => {
+wssf.onrelease(data => {
+	newReleases(data);
+});
+
+async function newReleases(data) {
 	let releases = JSON.parse(data);
 	let double = false;
 	let chapters = { numbers: "", titles: "" };
@@ -48,7 +52,7 @@ wssf.onrelease(async data => {
 				for (let user of user_docs) {
 					bot.users.cache.get(user.id)
 					.send("", embed)
-					.catch(() => {})
+					.catch()
 				}
 			}
 			chapters = {numbers: "", titles: ""};
@@ -56,7 +60,8 @@ wssf.onrelease(async data => {
 			double = false;
 		}
 	}
-});
+}
+
 function commandProcess(msg) {
 	let rawCommand = msg.content;
     let fullCommand = rawCommand.substr(secrets.prefix.length);
