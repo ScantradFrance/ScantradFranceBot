@@ -45,8 +45,8 @@ async function newReleases(data) {
 			chapters.titles += "\n";
 			double = true;
 		} else {
-			if (!double) embed.setThumbnail(releases[r].thumbnail).setImage(releases[r].image).setURL(`https://scantrad.net/mangas/${releases[r].id}/${releases[r].number}`).setTitle("Lire le chapitre").addField("Le chapitre `" + releases[r].number + "` de `" + releases[r].name + "` est sorti !", releases[r].title);
-			else embed.setTitle("Lire les chapitres").addField("Les chapitres `" + chapters.numbers + "` de `" + releases[r].name + "` sont sortis !", chapters.titles);
+			if (!double) embed.setThumbnail(releases[r].thumbnail).setImage(releases[r].image).setURL(`https://scantrad.net/mangas/${releases[r].id}/${releases[r].number}`).setTitle(releases[r].name + " - " + releases[r].number).addField("Le chapitre `" + releases[r].number + "` de `" + releases[r].name + "` est sorti !", releases[r].title);
+			else embed.setTitle(releases[r].name + " - " + chapters.numbers).addField("Les chapitres `" + chapters.numbers + "` de `" + releases[r].name + "` sont sortis !", chapters.titles);
 			let user_docs = await User.find({$or: [{follows: releases[r].id}, {all: true}]}).catch(console.error);
 			if (user_docs) {
 				for (let user of user_docs) {
