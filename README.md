@@ -1,3 +1,5 @@
+# Obsolète ! Le bot n'est plus maintenu du au fait de changement de design du site.
+
 # ScantradFrance <img src="icon.jpg" alt="Scantrad France logo" width="32">
 Annonce la sortie de nouveaux chapitres de `https://scantrad.net`
 
