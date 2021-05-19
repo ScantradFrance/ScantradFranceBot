@@ -1,15 +1,14 @@
-# Obsolète ! Le bot n'est plus maintenu du au fait de changement de design du site.
-
 # ScantradFrance <img src="icon.jpg" alt="Scantrad France logo" width="32">
 Annonce la sortie de nouveaux chapitres de `https://scantrad.net`
 
 ## Préfixe
-- `sf!`
+- `sf`
 
 ## Commandes
 - `mangas` : Voir l'id des mangas
 - `followed` : Voir la liste les mangas suivis
 - `all` : Suivre tous les mangas et les nouveautés
+- `toggle` : Activer ou non les pings à chaque nouvelle sortie
 - `follow MANGA_ID...` : Suivre des mangas
 - `unfollow MANGA_ID...` : Ne plus suivre des mangas
 
