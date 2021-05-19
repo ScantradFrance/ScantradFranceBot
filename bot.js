@@ -16,59 +16,57 @@ mongoose
 		useCreateIndex: true
 	})
 	.then(() => console.log("Database connected"))
-    .catch(err => console.log(err));
+    .catch(console.error);
 mongoose.Promise = Promise;
 
-bot.on('ready', () => { console.log(bot.user.tag + " is online"); })
+bot.on('ready', () => {
+	console.log(bot.user.tag + " is online");
+	bot.user.setActivity("sf help", { type: "WATCHING" });
+})
 bot.on('message', msg => {
-	if (msg.content.toLowerCase().startsWith(secrets.prefix))
-		commandProcess(msg);
+	if (msg.content.toLowerCase().startsWith(secrets.prefix) || (!msg.guild && !msg.author.bot))
+		commandProcess(msg, !msg.guild);
 });
 
 const wssf = new WsSf();
 wssf.onrelease(data => {
-	newReleases(data);
+	newRelease(data);
 });
 
-async function newReleases(data) {
-	let releases = JSON.parse(data);
-	let double = false;
-	let chapters = { numbers: "", titles: "" };
-	let embed = new Discord.MessageEmbed();
-	for (let r = 0; r < Object(releases).length; r++) {
-		chapters.numbers += releases[r].number;
-		chapters.titles += "• " + releases[r].title;
-		embed.setColor(embed_color).setFooter("Merci de supporter la team en lisant sur le site !").setTimestamp();
-		if (r + 1 < Object(releases).length && releases[r].id === releases[r + 1].id) {
-			if (!double) embed.setURL(`https://scantrad.net/mangas/${releases[r].id}/${releases[r].number}`).setThumbnail(releases[r].thumbnail).setImage(releases[r].image);
-			chapters.numbers += ", ";
-			chapters.titles += "\n";
-			double = true;
-		} else {
-			if (!double) embed.setThumbnail(releases[r].thumbnail).setImage(releases[r].image).setURL(`https://scantrad.net/mangas/${releases[r].id}/${releases[r].number}`).setTitle(releases[r].name + " - " + releases[r].number).addField("Le chapitre `" + releases[r].number + "` de `" + releases[r].name + "` est sorti !", releases[r].title);
-			else embed.setTitle(releases[r].name + " - " + chapters.numbers).addField("Les chapitres `" + chapters.numbers + "` de `" + releases[r].name + "` sont sortis !", chapters.titles);
-			let user_docs = await User.find({$or: [{follows: releases[r].id}, {all: true}]}).catch(console.error);
-			if (user_docs) {
-				for (let user of user_docs) {
-					bot.users.cache.get(user.id)
-					.send("", embed)
-					.catch()
-				}
-			}
-			chapters = {numbers: "", titles: ""};
-			embed = new Discord.MessageEmbed();
-			double = false;
+async function newRelease(data) {
+	const release = JSON.parse(data);
+	const embed = new Discord.MessageEmbed();
+	embed
+	.setColor(embed_color)
+	.setTitle(release.manga.name + " - " + release.number)
+	.setURL(`https://scantrad.net/mangas/${release.manga.id}/${release.number}`)
+	.setThumbnail(release.manga.thumbnail)
+	.addField("Le chapitre `" + release.number + "` de `" + release.manga.name + "` est sorti !", release.title)
+	.setTimestamp()
+	.setFooter("Merci de supporter la team en lisant sur le site !");
+
+	const user_docs = await User.find({
+		$and: [
+			{ $or: [{ follows: release.id }, { all: true }]},
+			{ enabled: true }
+		]
+	}).catch(console.error);
+	if (user_docs) {
+		for (let user of user_docs) {
+			bot.users.cache.get(user.id)
+			.send("", embed)
+			.catch(() => {});
 		}
 	}
 }
 
-function commandProcess(msg) {
+function commandProcess(msg, dm) {
 	let rawCommand = msg.content;
-    let fullCommand = rawCommand.substr(secrets.prefix.length);
+	let fullCommand = dm ? rawCommand : rawCommand.substr(secrets.prefix.length);
     let splitCommand = fullCommand.split(' ');
 	splitCommand = splitCommand.filter(function(e){return e});
     let primaryCommand = splitCommand[0];
-    let arguments = splitCommand.slice(1);
+    let args = splitCommand.slice(1);
 
 	switch (primaryCommand.toLowerCase()) {
 		case 'help':
@@ -84,7 +82,6 @@ function commandProcess(msg) {
 			let pages = [];
 			let embed_str = "";
 			if (mangas.length) {
-				mangas.reverse();
 				let p = -1;
 				for (let manga of mangas) {
 					if (m % 15 === 0) {
@@ -148,12 +145,28 @@ function commandProcess(msg) {
 			.catch(console.error);
 			break;
 
+		case 'toggle': // toggle pings
+			User
+			.findOrCreate({ id: msg.author.id })
+			.then(res => {
+				let user_doc = res.doc;
+				user_doc.enabled = !user_doc.enabled;
+				user_doc
+				.save()
+				.then(() => {
+					msgReply(msg, user_doc.enabled ? "tu recevras un ping à chaque nouvelle sortie !" : "tu ne seras plus notifié des nouvelles sorties.").catch(console.error);
+				})
+				.catch(console.error);
+			})
+			.catch(console.error);
+			break;
+
 		case 'follow': // follow mangas
-			updateFollow(msg, arguments, true);
+			updateFollow(msg, args, true);
 			break;
 
 		case 'unfollow': // unfollow mangas
-			updateFollow(msg, arguments, false);
+			updateFollow(msg, args, false);
 			break;
 
 		default:
@@ -171,18 +184,18 @@ function showHelp(msg) {
 		.setColor(embed_color)
 		.addFields(
 			{ name: "Préfixe : `"+secrets.prefix+"`", value: "\n‎" },
-			{ name: "Commandes :", value: "• `mangas` : Voir l'id des mangas\n• `followed` : Voir la liste des mangas suivis\n• `all` : Suivre tous les mangas et les nouveautés\n• `follow MANGA_ID...` : Suivre des mangas\n• `unfollow MANGA_ID...` : Ne plus suivre des mangas\n‎" }
+			{ name: "Commandes :", value: "• `mangas` : Voir l'id des mangas\n• `followed` : Voir la liste des mangas suivis\n• `all` : Suivre tous les mangas et les nouveautés\n• `toggle` : Activer ou non les pings à chaque nouvelle sortie\n• `follow MANGA_ID...` : Suivre des mangas\n• `unfollow MANGA_ID...` : Ne plus suivre des mangas\n‎" }
 		);
 	msgSend(msg, "", embed).catch(console.error);
 }
 
-function updateFollow(msg, arguments, toFollow) {
-	if (!arguments.length) { msgReply(msg, toFollow ? "choisis un ou des mangas à suivre." : "choisis un ou des mangas à ne plus suivre.").catch(console.error); return; }
+function updateFollow(msg, args, toFollow) {
+	if (!args.length) { msgReply(msg, toFollow ? "choisis un ou des mangas à suivre." : "choisis un ou des mangas à ne plus suivre.").catch(console.error); return; }
 	fetch(secrets.sf_api.url+"mangas", {headers: new fetch.Headers({'Authorization': 'Bearer '+secrets.sf_api.token})})
 	.then(response => response.json())
 	.then(async mangas => {
 		let r = 0;
-		for (let manga_id of arguments) {
+		for (let manga_id of args) {
 			let found = (mangas.find(el => el.id === manga_id)) !== undefined;
 			if (found) {
 				let res;

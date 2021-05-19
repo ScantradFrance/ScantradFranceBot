@@ -14,6 +14,10 @@ const UserSchema = new Schema({
 		all: {
 			type: Boolean,
 			default: false
+		},
+		enabled: {
+			type: Boolean,
+			default: true
 		}
     }
 );
