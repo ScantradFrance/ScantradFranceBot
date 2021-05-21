@@ -47,7 +47,7 @@ async function newRelease(data) {
 
 	const user_docs = await User.find({
 		$and: [
-			{ $or: [{ follows: release.id }, { all: true }]},
+			{ $or: [{ follows: release.manga.id }, { all: true }]},
 			{ enabled: true }
 		]
 	}).catch(console.error);
