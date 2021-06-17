@@ -14,3 +14,6 @@ Annonce la sortie de nouveaux chapitres de `https://scantrad.net`
 
 ## Invite link
 https://discord.com/oauth2/authorize?client_id=784358929073176607&scope=bot&permissions=10240
+
+## Licence
+[ALV](LICENSE)
