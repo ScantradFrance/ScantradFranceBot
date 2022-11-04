@@ -28,7 +28,7 @@ bot.on('message', msg => {
 		commandProcess(msg, !msg.guild);
 });
 
-const wssf = new WsSf();
+const wssf = new WsSf(secrets.wssf_uri);
 wssf.onrelease(data => {
 	newRelease(data);
 });
